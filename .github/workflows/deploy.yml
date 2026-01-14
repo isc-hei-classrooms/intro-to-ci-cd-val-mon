@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   ci:
@@ -31,7 +30,7 @@ jobs:
       - run: make release
       - run : make test
       
-      # copy and rename the binary created
+      # copy and rename the binary previously created
       - run: cp build/main dummydb
 
       # upload release files
