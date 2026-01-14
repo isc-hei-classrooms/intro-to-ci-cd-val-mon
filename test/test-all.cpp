@@ -36,7 +36,7 @@ int main() {
 
   "find_string"_test = [] {
     ddb::DummyDB db{0};
-    auto i = db.insert_string("Hello");
+    auto i = db.insert_string("Compromise test to fail CI");
     auto j = db.insert_string("World");
 
     expect(db.find_string("Hello") == i);
