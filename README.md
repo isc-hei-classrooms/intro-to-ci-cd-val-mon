@@ -65,4 +65,107 @@ make test
 
 ## CI/CD
 
-First test of pull request
+This project implements automated Continuous Integration (CI) and Continuous Deployment (CD) pipelines using GitHub Actions and Docker.
+
+### Overview
+
+- **CI (Continuous Integration)**: Runs on every push and pull request to `main`. Builds and tests the code in a clean environment.
+- **CD (Continuous Deployment)**: Runs only when a release is created. Produces versioned artifacts (binary + Docker image) and publishes them.
+
+### Workflows
+
+#### CI Workflow ([.github/workflows/test.yml](.github/workflows/test.yml))
+
+**Trigger conditions:**
+- Push to `main` branch
+- Pull requests targeting `main`
+
+**Jobs:**
+1. `test`: Builds and tests natively
+   - `make` - compiles the project
+   - `make test` - runs unit tests
+
+2. `docker-build`: Builds and smoke tests Docker image
+   - `docker build` - builds the multi-stage Docker image (includes tests)
+   - `docker run` - smoke test to verify the container starts successfully
+
+The workflow fails if compilation, tests, or Docker build fails.
+
+#### CD Workflow ([.github/workflows/deploy.yml](.github/workflows/deploy.yml))
+
+**Trigger conditions:**
+- Release creation (manual trigger on GitHub)
+
+**Jobs:**
+1. `ci`: Runs CI checks before deploying
+   - Ensures the release is only created from passing code
+
+2. `cd`: Builds and publishes release artifacts
+   - Builds optimized release binary (`make release`)
+   - Uploads artifacts to GitHub release:
+     - `dummydb-<version>`
+     - `LICENSE`
+   - Builds and pushes Docker image to GitHub Container Registry (GHCR):
+     - `ghcr.io/isc-hei-classrooms/intro-to-ci-cd-val-mon:<version>`
+     - `ghcr.io/isc-hei-classrooms/intro-to-ci-cd-val-mon:latest`
+   - Depends on: `ci` job (CD does not run if CI fails)
+
+**Artifact naming:**
+- Binary: `dummydb-<git-tag>` (e.g., `dummydb-v1.0.3`)
+- Docker image: Tagged with both release version and `latest`
+
+### Implementation Details
+
+#### Task 1 - Basic CI/CD (commit `64cd44b`)
+
+The initial implementation added two workflows:
+- `test.yml`: Runs `make` and `make test` on every push/PR
+- `deploy.yml`: Runs on release creation, builds release binary and uploads artifacts
+
+**Issues encountered:** 
+- Missing `permissions:` block (needed `contents: write` for release uploads, later `packages: write` for GHCR)
+- Commented line that was causing the workflow to fail when uncommented
+- The `deploy.yml` workflow stopped triggering on new releases. Multiple attempts were needed to diagnose and fix the issues, which explains the high number of "fix deploy" commits. The workflow required manual disabling and re-enabling in GitHub's Actions settings to properly reload.
+
+#### Task 2 - Docker Support (commit `b5cfeca`)
+
+Added Docker support with a multi-stage build:
+
+**Dockerfile features:**
+- **Builder stage**: Debian Bookworm with g++ and make
+  - Compiles with `make release`
+  - Runs tests with `make test` (build fails if tests fail)
+- **Runtime stage**: Debian Bookworm Slim
+  - Minimal image (no build tools)
+  - Runs as non-root user (`dummydb`)
+  - Only contains the compiled binary
+
+**Docker constraints satisfied:**
+- Multi-stage build ✓
+- Tests run during build ✓
+- Runtime image smaller than builder ✓
+- Non-root user ✓
+
+### Pulling and Running the Docker Image
+
+**Authentication issue:** When I tried to pull the image from GHCR, I encounter this problem
+```
+Error response from daemon: unauthorized
+```
+
+**Solution:** Create a GitHub Personal Access Token (PAT):
+1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token with `read:packages` permission
+3. Login to GHCR:
+```bash
+echo YOUR_TOKEN | docker login ghcr.io -u your-username --password-stdin
+```
+
+**Pull and run the image:**
+```bash
+docker pull ghcr.io/isc-hei-classrooms/intro-to-ci-cd-val-mon:latest
+docker run ghcr.io/isc-hei-classrooms/intro-to-ci-cd-val-mon:latest
+```
+
+Alternatively, if the package is set to public visibility, no authentication is required.
+For our repo, the organistation disable this possibility.
