@@ -169,3 +169,9 @@ docker run ghcr.io/isc-hei-classrooms/intro-to-ci-cd-val-mon:latest
 
 Alternatively, if the package is set to public visibility, no authentication is required.
 For our repo, the organistation disable this possibility.
+
+### Reproducing the Build Locally
+```bash
+docker build -t dummydb .
+docker run dummydb
+```
