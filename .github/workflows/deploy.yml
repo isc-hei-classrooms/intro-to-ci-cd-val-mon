@@ -1,11 +1,11 @@
 name: deploy project
 
-permissions:
-  contents: write
-
 on:
   release:
     types: [created]
+
+permissions:
+  contents: write
 
 jobs:
   ci:
