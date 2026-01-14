@@ -1,0 +1,32 @@
+name: deploy project
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # run CI checks before deploying
+      - run: make
+      - run: make test
+
+      # clean previous build
+      - run : make clean
+
+      # build with optimization for release
+      - run : make release
+      - run : make test
+      
+      # copy and rename the binary created
+      - run: cp build/main dummydb
+
+      # upload release files
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dummydb
+            LICENSE
