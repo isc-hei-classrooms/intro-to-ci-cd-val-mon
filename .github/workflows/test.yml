@@ -8,10 +8,17 @@ on:
     branches:
       - main
 
-jobs: 
-  test: 
+jobs:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - run: make
       - run: make test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: docker build -t dummydb .
+      - run: docker run dummydb
