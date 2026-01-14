@@ -3,7 +3,7 @@ FROM debian:bookworm AS builder
 
 RUN apt-get update && apt-get install -y \
     g++ \
-    # make \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
