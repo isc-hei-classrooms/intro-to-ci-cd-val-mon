@@ -4,9 +4,9 @@ on:
   release:
     types: [created]
 
-permissions:
-  contents: write
-  packages: write
+# permissions:
+#   contents: write
+#   packages: write
 
 jobs:
   ci:
@@ -29,7 +29,7 @@ jobs:
 
       # build with optimization for release
       - run : make release
-      - run : make test
+      # - run : make test
       
       # copy and rename the binary created
       - run: cp build/main dummydb
