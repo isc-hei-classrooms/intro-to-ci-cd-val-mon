@@ -1,5 +1,8 @@
 name: deploy project
 
+permissions:
+  contents: write
+
 on:
   release:
     types: [created]
@@ -25,14 +28,14 @@ jobs:
 
       # build with optimization for release
       - run : make release
-      # - run : make test
+      - run : make test
       
       # copy and rename the binary created
       - run: cp build/main dummydb
 
-      # upload release files
-      # - uses: softprops/action-gh-release@v2
-      #   with:
-      #     files: |
-      #       dummydb
-      #       LICENSE
+      upload release files
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dummydb
+            LICENSE
