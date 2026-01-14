@@ -33,7 +33,7 @@ jobs:
       # copy and rename the binary created
       - run: cp build/main dummydb
 
-      upload release files
+      # upload release files
       - uses: softprops/action-gh-release@v2
         with:
           files: |
